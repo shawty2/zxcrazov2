@@ -56,8 +56,7 @@ async def memory_info(message: Message):
 async def show_prompt(message: Message):
     user_id = str(message.from_user.id)
     prompt = sessions.get(user_id, {}).get("prompt", DEFAULT_PROMPT)
-    await message.reply(f"📜 Текущий системный промт:
-{prompt}")
+    await message.reply(f"📜 Текущий системный промт: {prompt}")
 
 @router.message(F.text.startswith("/setprompt "))
 async def set_prompt(message: Message):
