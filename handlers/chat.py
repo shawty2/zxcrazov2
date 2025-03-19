@@ -9,6 +9,9 @@ router = Router()
 client = AsyncOpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY"),
     base_url="https://openrouter.ai/api/v1"
+    default_headers={
+        "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}"
+    }
 )
 
 @router.message(F.text)
