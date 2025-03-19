@@ -1,55 +1,28 @@
-from aiogram import Router, types
-from aiogram.filters import Command
-from aiogram.fsm.context import FSMContext
-from states.chat import ChatState
-import openai
 import os
-from config import OPENAI_API_KEY
+from openai import AsyncOpenAI
+from aiogram import Router, F, types
+from aiogram.enums.parse_mode import ParseMode
+from aiogram.utils.markdown import hcode
 
 router = Router()
 
-# Настройка OpenRouter
-openai.api_key = OPENAI_API_KEY
-openai.api_base = "https://openrouter.ai/api/v1"
-openai.default_headers = {
-    "Authorization": f"Bearer {OPENAI_API_KEY}"
-}
+client = AsyncOpenAI(
+    api_key=os.getenv("OPENROUTER_API_KEY"),
+    base_url="https://openrouter.ai/api/v1"
+)
 
-user_sessions = {}
-
-@router.message(Command("chat"))
-async def start_chat(message: types.Message, state: FSMContext):
-    user_id = message.from_user.id
-    user_sessions[user_id] = [
-        { "role": "system", "content": "Ты дружелюбный помощник." }
-    ]
-    await state.set_state(ChatState.chatting)
-    await message.answer("💬 Ты начал чат со мной. Пиши, что хочешь!")
-
-@router.message(ChatState.chatting)
-async def handle_chat(message: types.Message, state: FSMContext):
-    user_id = message.from_user.id
-    prompt = message.text
-
-    if user_id not in user_sessions:
-        user_sessions[user_id] = [
-            { "role": "system", "content": "Ты дружелюбный помощник." }
-        ]
-
-    user_sessions[user_id].append({ "role": "user", "content": prompt })
-
+@router.message(F.text)
+async def chat_with_gpt(message: types.Message):
     try:
-        response = await ask_chatgpt(user_sessions[user_id])
-        user_sessions[user_id].append({ "role": "assistant", "content": response })
-        await message.answer(response)
-    except Exception as e:
-        await message.answer(f"❌ Ошибка: {e}")
-        await state.clear()
-        user_sessions.pop(user_id, None)
+        response = await client.chat.completions.create(
+            model="mistralai/mistral-7b",
+            messages=[
+                {"role": "system", "content": "Тебе 20 лет, ты злой и ленивый Telegram-бот-помощник."},
+                {"role": "user", "content": message.text}
+            ]
+        )
+        reply = response.choices[0].message.content
+        await message.reply(reply)
 
-async def ask_chatgpt(messages: list[dict]) -> str:
-    completion = await openai.ChatCompletion.acreate(
-        model="openai/gpt-3.5-turbo",  # Укажи здесь актуальную модель, доступную в твоем OpenRouter аккаунте
-        messages=messages
-    )
-    return completion.choices[0].message.content
+    except Exception as e:
+        await message.reply(f"❌ Ошибка: {hcode(str(e))}")
