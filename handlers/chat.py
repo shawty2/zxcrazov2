@@ -82,15 +82,11 @@ async def all_prompts(message: Message):
         await message.reply("🚫 Команда доступна только администратору.")
         return
 
-    text = "📋 Все кастомные промты пользователей:
-"
+    text = "📋 Все кастомные промты пользователей:"
     for user_id, data in sessions.items():
         prompt = data.get("prompt")
         if prompt and prompt != DEFAULT_PROMPT:
-            text += f"👤 {user_id}:
-{prompt}
-
-"
+            text += f"👤 {user_id}:{prompt}"
     if text.strip() == "📋 Все кастомные промты пользователей:":
         text += "Пользователи с кастомными промтами не найдены."
     await message.reply(text)
@@ -135,15 +131,13 @@ async def chat_with_gpt(message: Message):
             )
 
             if response.status_code != 200:
-                await message.reply(f"❌ Ошибка {response.status_code}:
-{hcode(response.text)}")
+                await message.reply(f"❌ Ошибка {response.status_code}:{hcode(response.text)}")
                 return
 
             data = response.json()
 
             if "choices" not in data:
-                await message.reply(f"❌ В ответе нет поля 'choices':
-{hcode(str(data))}")
+                await message.reply(f"❌ В ответе нет поля 'choices':{hcode(str(data))}")
                 return
 
             reply = data["choices"][0]["message"]["content"]
@@ -155,5 +149,4 @@ async def chat_with_gpt(message: Message):
             await message.reply(reply)
 
         except Exception as e:
-            await message.reply(f"❌ Ошибка при обращении к API:
-<code>{e}</code>")
+            await message.reply(f"❌ Ошибка при обращении к API:<code>{e}</code>")
