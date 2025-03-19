@@ -1,28 +1,34 @@
 import os
-from openrouter import Client  # Используем OpenRouter
+import httpx
 from aiogram import Router, F, types
-from aiogram.enums.parse_mode import ParseMode
 from aiogram.utils.markdown import hcode
 
 router = Router()
 
-# Инициализация клиента OpenRouter
-client = Client(api_key=os.getenv("OPENROUTER_API_KEY"))
+# Инициализация клиента OpenRouter с помощью httpx
+client = httpx.AsyncClient()
 
+# Работа с OpenRouter API
 @router.message(F.text)
 async def chat_with_gpt(message: types.Message):
     try:
         # Отправка запроса на OpenRouter
-        response = await client.chat_completions.create(
-            model="mistralai/mistral-7b",  # Модель OpenRouter
-            messages=[
-                {"role": "system", "content": "Ты хороший помощник!"},
-                {"role": "user", "content": message.text}
-            ]
+        response = await client.post(
+            'https://openrouter.ai/api/v1/chat/completions',  # API OpenRouter
+            json={
+                'model': 'mistralai/mistral-7b',  # Модель OpenRouter
+                'messages': [
+                    {"role": "system", "content": "Тебе 20 лет, ты злой и ленивый Telegram-бот-помощник."},
+                    {"role": "user", "content": message.text}
+                ]
+            },
+            headers={
+                "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}"
+            }
         )
 
         # Получаем ответ от модели и отправляем пользователю
-        reply = response["choices"][0]["message"]["content"]
+        reply = response.json()["choices"][0]["message"]["content"]
         await message.reply(reply)
 
     except Exception as e:
