@@ -3,10 +3,17 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from states.chat import ChatState
 import openai
+import os
 from config import OPENAI_API_KEY
 
 router = Router()
+
+# Настройка OpenRouter
 openai.api_key = OPENAI_API_KEY
+openai.api_base = "https://openrouter.ai/api/v1"
+openai.default_headers = {
+    "Authorization": f"Bearer {OPENAI_API_KEY}"
+}
 
 user_sessions = {}
 
@@ -42,7 +49,7 @@ async def handle_chat(message: types.Message, state: FSMContext):
 
 async def ask_chatgpt(messages: list[dict]) -> str:
     completion = await openai.ChatCompletion.acreate(
-        model="gpt-3.5-turbo",
+        model="openai/gpt-3.5-turbo",  # Укажи здесь актуальную модель, доступную в твоем OpenRouter аккаунте
         messages=messages
     )
     return completion.choices[0].message.content
