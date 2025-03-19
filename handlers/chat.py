@@ -37,9 +37,9 @@ async def chat_with_gpt(message: Message):
     }
 
     payload = {
-        "model": "mistralai/mistral-7b-instruct:free",
+        "model": "deepseek/deepseek-r1:free",
         "messages": [
-            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "system", "content": "Ты злой, ироничный помощник, говоришь резко, не терпишь глупых вопросов, харизматичен, умен. Отвечаешь на русском."},
             {"role": "user", "content": user_message}
         ]
     }
