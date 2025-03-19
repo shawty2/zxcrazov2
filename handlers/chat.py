@@ -1,35 +1,47 @@
 import os
 import httpx
-from aiogram import Router, F, types
+from aiogram import Router, F
+from aiogram.types import Message
 from aiogram.utils.markdown import hcode
 
 router = Router()
 
-# Инициализация клиента OpenRouter с помощью httpx
-client = httpx.AsyncClient()
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-# Работа с OpenRouter API
 @router.message(F.text)
-async def chat_with_gpt(message: types.Message):
-    try:
-        # Отправка запроса на OpenRouter
-        response = await client.post(
-            'https://openrouter.ai/api/v1/chat/completions',  # API OpenRouter
-            json={
-                'model': 'mistralai/mistral-7b',  # Модель OpenRouter
-                'messages': [
-                    {"role": "system", "content": "Тебе 20 лет, ты злой и ленивый Telegram-бот-помощник."},
-                    {"role": "user", "content": message.text}
-                ]
-            },
-            headers={
-                "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}"
-            }
-        )
+async def chat_with_gpt(message: Message):
+    user_message = message.text
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://yourdomain.com",
+        "X-Title": "YourAppName"
+    }
 
-        # Получаем ответ от модели и отправляем пользователю
-        reply = response.json()["choices"][0]["message"]["content"]
-        await message.reply(reply)
+    payload = {
+        "model": "mistralai/mistral-7b",
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": user_message}
+        ]
+    }
 
-    except Exception as e:
-        await message.reply(f"❌ Ошибка: {hcode(str(e))}")
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
+
+            if response.status_code != 200:
+                await message.reply(f"❌ Ошибка {response.status_code}:\n{hcode(response.text)}")
+                return
+
+            data = response.json()
+
+            if "choices" not in data:
+                await message.reply(f"❌ В ответе нет поля 'choices':\n{hcode(str(data))}")
+                return
+
+            reply = data["choices"][0]["message"]["content"]
+            await message.reply(reply)
+
+        except Exception as e:
+            await message.reply(f"❌ Ошибка при обращении к API:\n<code>{e}</code>")
