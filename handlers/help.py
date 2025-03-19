@@ -10,10 +10,10 @@ async def cmd_help(message: types.Message):
         "/kick @user или реплай — кикнуть\n"
         "/mute @user или реплай — замутить\n"
         "/unmute @user или реплай — размутить\n"
-        "/chat — общение с ChatGPT\n"
-        "/help — список команд"
+        "/chat — общение с гпт"
+        "/help — твоя мать шалава"
     )
 
 @router.message(Command("start"))
 async def cmd_start(message: types.Message):
-    await message.reply("👋 Привет! Я бот. Напиши /help, чтобы посмотреть список команд.")
+    await message.reply("Сао. Что с еблом ? 💀💀💀")
