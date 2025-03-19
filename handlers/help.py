@@ -16,4 +16,4 @@ async def cmd_help(message: types.Message):
 
 @router.message(Command("start"))
 async def cmd_start(message: types.Message):
-    await message.reply("Сао. Что с еблом ? 💀💀💀")
+    await message.reply("Сао. Что с еблом ? 💀💀💀" «\n» "Пиши /swaga , если не очкун" «\n» "Пиши /help , если беспомощный") 
